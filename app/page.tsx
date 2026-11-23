@@ -89,8 +89,8 @@ export default function Page() {
   useEffect(() => {
     let active = true
     if (process.env.NEXT_PUBLIC_GITHUB_PAGES === 'true') {
-      setApiStatus('ready')
-      return
+      const timeout = window.setTimeout(() => setApiStatus('ready'), 0)
+      return () => window.clearTimeout(timeout)
     }
     const checkWorkloadApi = async () => {
       try {
