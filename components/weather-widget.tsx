@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { describeWeatherCode } from "@/lib/weather";
 import {
   Sun,
   CloudSun,
@@ -99,6 +100,27 @@ async function getBrowserCoordinates() {
   });
 }
 
+async function fetchStaticWeather(coords: { lat: number; lon: number }): Promise<WeatherResponse> {
+  const url = new URL("https://api.open-meteo.com/v1/forecast");
+  url.searchParams.set("latitude", String(coords.lat));
+  url.searchParams.set("longitude", String(coords.lon));
+  url.searchParams.set("current", "temperature_2m,apparent_temperature,weather_code,is_day");
+  url.searchParams.set("timezone", "auto");
+  const response = await fetch(url.toString(), { cache: "no-store" });
+  if (!response.ok) throw new Error("Weather request failed");
+  const current = (await response.json()).current;
+  if (!current) throw new Error("Missing weather data");
+  const condition = describeWeatherCode(current.weather_code);
+  return {
+    location: "Current location",
+    tempC: current.temperature_2m,
+    feelsLikeC: current.apparent_temperature,
+    label: condition.label,
+    icon: condition.icon,
+    isDay: current.is_day === 1,
+  };
+}
+
 async function fetchWeather(path: string) {
   const controller = new AbortController();
   const timeout = window.setTimeout(() => controller.abort(), LOCATION_TIMEOUT);
@@ -155,8 +177,11 @@ export function WeatherWidget({ timeFormat }: Props) {
             lon: String(Math.round(coords.lon * 1000) / 1000),
             location: "Current location",
           });
-          data = await fetchWeather(`/api/weather?${params.toString()}`);
+          data = process.env.NEXT_PUBLIC_GITHUB_PAGES === "true"
+            ? await fetchStaticWeather(coords)
+            : await fetchWeather(`/api/weather?${params.toString()}`);
         } catch {
+          if (process.env.NEXT_PUBLIC_GITHUB_PAGES === "true") throw new Error("Location unavailable");
           data = await fetchWeather("/api/weather");
         }
 
