@@ -4,7 +4,8 @@ import type { Metadata, Viewport } from 'next'
 import { WelcomePopup } from '@/components/welcome-popup'
 import './globals.css'
 
-const siteUrl = 'https://sif-tracker-omega.vercel.app'
+const isPages = process.env.NEXT_PUBLIC_GITHUB_PAGES === 'true'
+const siteUrl = isPages ? 'https://ny0r.github.io/siftracker/' : 'https://sif-tracker-omega.vercel.app'
 
 const geist = Geist({
   subsets: ['latin'],
@@ -40,7 +41,7 @@ export const metadata: Metadata = {
   creator: 'Nicole John Dela Cruz',
   publisher: 'SIF Tracker',
   category: 'productivity',
-  alternates: { canonical: '/' },
+  alternates: { canonical: siteUrl },
   robots: {
     index: true,
     follow: true,
@@ -67,11 +68,11 @@ export const metadata: Metadata = {
   },
   icons: {
     icon: [
-      { url: '/icon-light-32x32.png', media: '(prefers-color-scheme: light)' },
-      { url: '/icon-dark-32x32.png', media: '(prefers-color-scheme: dark)' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: `${isPages ? '/siftracker' : ''}/icon-light-32x32.png`, media: '(prefers-color-scheme: light)' },
+      { url: `${isPages ? '/siftracker' : ''}/icon-dark-32x32.png`, media: '(prefers-color-scheme: dark)' },
+      { url: `${isPages ? '/siftracker' : ''}/icon.svg`, type: 'image/svg+xml' },
     ],
-    apple: '/apple-icon.png',
+    apple: `${isPages ? '/siftracker' : ''}/apple-icon.png`,
   },
 }
 
@@ -117,7 +118,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
       <body className="font-sans antialiased">
         {children}
         <WelcomePopup />
-        {process.env.NODE_ENV === 'production' && <Analytics />}
+        {process.env.NODE_ENV === 'production' && !isPages && <Analytics />}
       </body>
     </html>
   )
