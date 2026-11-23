@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
+const isPages = process.env.GITHUB_PAGES === 'true'
+
 const nextConfig = {
+  ...(isPages ? { output: 'export', basePath: '/siftracker', trailingSlash: true } : {}),
   images: {
     unoptimized: true,
   },
